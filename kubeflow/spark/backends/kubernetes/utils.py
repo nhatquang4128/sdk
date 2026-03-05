@@ -73,7 +73,7 @@ def validate_resource_string(value: str) -> None:
     match = re.fullmatch(r"([0-9]+)([A-Za-z]*)", value)
     if not match or match.group(2) not in _VALID_UNITS:
         raise ValueError(
-            f"Invalid Kubernetes resource string: {value!r}Valid units are: {sorted(_VALID_UNITS)}"
+            f"Invalid Kubernetes resource string: {value!r} Valid units are: {sorted(u for u in _VALID_UNITS if u)}"
         )
 
 
@@ -184,8 +184,10 @@ def get_executor_spec_from_executor(
 
     if resource_dict:
         if "cpu" in resource_dict:
+            validate_resource_string(resource_dict["cpu"])
             cores = int(resource_dict["cpu"])
         if "memory" in resource_dict:
+            validate_resource_string([resource_dict["memory"]])
             memory = _memory_kubernetes_to_spark(resource_dict["memory"])
 
     return models.SparkV1alpha1ExecutorSpec(

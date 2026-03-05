@@ -125,6 +125,10 @@ class TestValidateResourceString:
         with pytest.raises(ValueError, match="Invalid Kubernetes resource string"):
             validate_resource_string("256 Mi")
 
+    def test_decimal_rejected(self):
+        with pytest.raises(ValueError, match="Invalid Kubernetes resource string"):
+            validate_resource_string("1.5Gi")
+
 
 class TestBuildServiceUrl:
     """Tests for build_service_url function."""
