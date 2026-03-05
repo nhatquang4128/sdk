@@ -55,6 +55,28 @@ def validate_spark_connect_url(url: str) -> bool:
     return True
 
 
+_VALID_UNITS = {"Ki", "Mi", "Gi", "Ti", "Pi", "Ei", "m", "k", "M", "G", "T", "P", "E", ""}
+
+
+def validate_resource_string(value: str) -> None:
+    """Validate a Kubernetes resource string.
+
+    Args:
+        value: Resource string to validate (e.g., '256Mi', '2Gi').
+
+    Raises:
+        ValueError: If the resource string is invalid.
+    """
+    if not isinstance(value, str) or not value:
+        raise ValueError(f"Expected non-empty string but got: {value!r}")
+
+    match = re.fullmatch(r"([0-9]+)([A-Za-z]*)", value)
+    if not match or match.group(2) not in _VALID_UNITS:
+        raise ValueError(
+            f"Invalid Kubernetes resource string: {value!r}Valid units are: {sorted(_VALID_UNITS)}"
+        )
+
+
 def _memory_kubernetes_to_spark(memory: str) -> str:
     """Convert Kubernetes-style memory (e.g. 4Gi, 512Mi) to Spark/JVM style (4g, 512m).
 

@@ -24,6 +24,7 @@ from kubeflow.spark.backends.kubernetes.utils import (
     build_spark_connect_cr,
     generate_session_name,
     get_spark_connect_info_from_cr,
+    validate_resource_string,
     validate_spark_connect_url,
 )
 from kubeflow.spark.types.types import Driver, Executor, SparkConnectInfo, SparkConnectState
@@ -80,6 +81,49 @@ class TestValidateSparkConnectUrl:
         """U14: Missing port raises ValueError."""
         with pytest.raises(ValueError, match="Port is required"):
             validate_spark_connect_url("sc://localhost")
+
+
+class TestValidateResourceString:
+    """Tests for validate_resource_string function."""
+
+    def test_valid_memory_unit(self):
+        validate_resource_string("256Mi")
+        validate_resource_string("2Gi")
+
+    def test_valid_cpu_unit(self):
+        validate_resource_string("500m")
+        validate_resource_string("1k")
+
+    def test_valid_plain_number(self):
+        validate_resource_string("512")
+
+    def test_invalid_unit(self):
+        with pytest.raises(ValueError, match="Invalid Kubernetes resource string"):
+            validate_resource_string("256GB")
+
+    def test_invalid_unit_wrong_case(self):
+        with pytest.raises(ValueError, match="Invalid Kubernetes resource string"):
+            validate_resource_string("256mi")
+
+    def test_missing_number(self):
+        with pytest.raises(ValueError, match="Invalid Kubernetes resource string"):
+            validate_resource_string("k")
+
+    def test_empty_string(self):
+        with pytest.raises(ValueError, match="Expected non-empty string"):
+            validate_resource_string("")
+
+    def test_non_string_input(self):
+        with pytest.raises(ValueError, match="Expected non-empty string"):
+            validate_resource_string(256)
+
+    def test_none_input(self):
+        with pytest.raises(ValueError, match="Expected non-empty string"):
+            validate_resource_string(None)
+
+    def test_spaces_rejected(self):
+        with pytest.raises(ValueError, match="Invalid Kubernetes resource string"):
+            validate_resource_string("256 Mi")
 
 
 class TestBuildServiceUrl:
